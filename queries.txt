@@ -1,4 +1,4 @@
-# рейсы идущие из A в B, время отправления (time_from, time_to)
+# рейсы идущие из A в B, время отправления (TIME_FROM, TIME_TO)
 
 select a.route_id
 from route_point a, route_point b
@@ -7,19 +7,48 @@ where
     a.station_id = A and
     b.station_id = B and
     a.departure_time < b.arrival_time and
-    a.departure_time between time_from and time_to
+    a.departure_time between TIME_FROM and TIME_TO
 
 # Композитный индекс по route_point.station_id и route_point.departure_time
 
 
+# занятые места на рейс X из пункта A в пункт B
+Параметры запроса:
+    RUN_ID - id рейса
+    DEPARTURE_TIME - время отправления из пункта A
+    ARRIVAL_TIME - время прибытия в пункт B
+
+select *
+from ticker t,
+    join coach c on (c.id = t.coach_id)
+    join route_point ta (on t.start_station_id = ta.station_id)
+    join route_point tb on (t.end_station_id = tb.station_id)
+where
+    coach.run_id = RUN_ID and
+    ta.departure < ARRIVAL_TIME and
+    DEPARTURE_TIME < tb.arrival and
+    not t.cancelled
+
+
 # Вагоны на рейс X имеющие свободные места
+Параметры:
+    RUN_ID - id рейса
+    DEPARTURE_TIME - время отправления из пункта A
+    ARRIVAL_TIME - время прибытия в пункт B
+
 select coach_id from (
-    select coach.id as coach_id,
-           coach.number_of_berths total,
+    select c.id as coach_id,
+           c.number_of_berths total,
            count(*) bussy_count
-    from ticket
-        join coach on (coach.id = ticket.coach_id)
-    where coach.run_id = X
+    from ticker t,
+        join coach c on (c.id = t.coach_id)
+        join route_point ta (on t.start_station_id = ta.station_id)
+        join route_point tb on (t.end_station_id = tb.station_id)
+    where
+        coach.run_id = RUN_ID and
+        ta.departure < ARRIVAL_TIME and
+        DEPARTURE_TIME < tb.arrival and
+        not t.cancelled
     group by 1, 2
     having bussy_count < total
 )
