@@ -1,0 +1,25 @@
+# рейсы идущие из A в B, время отправления (time_from, time_to)
+
+select a.route_id
+from route_point a, route_point b
+where
+    a.route_id = b.route_id and
+    a.station_id = A and
+    b.station_id = B and
+    a.departure_time < b.arrival_time and
+    a.departure_time between time_from and time_to
+
+# Композитный индекс по route_point.station_id и route_point.departure_time
+
+
+# Вагоны на рейс X имеющие свободные места
+select coach_id from (
+    select coach.id as coach_id,
+           coach.number_of_berths total,
+           count(*) bussy_count
+    from ticket
+        join coach on (coach.id = ticket.coach_id)
+    where coach.run_id = X
+    group by 1, 2
+    having bussy_count < total
+)

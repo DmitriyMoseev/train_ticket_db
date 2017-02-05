@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'train_ticket.routes',
+    'train_ticket.runs',
     'train_ticket.tickets',
 ]
 
